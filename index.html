@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUNDAMENTAL.DEV — Programming Core</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --neon: #FF6B00;
+  --neon-bright: #FF9A3C;
+  --neon-dim: #C24B00;
+  --neon-glow: rgba(255,107,0,0.35);
+  --bg: #080808;
+  --bg2: #0F0F0F;
+  --bg3: #141414;
+  --text: #F0EDE8;
+  --text-dim: #6B6560;
+  --text-mid: #A89E95;
+  --border: rgba(255,107,0,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CURSOR */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--neon);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transition: transform 0.1s;
+  box-shadow: 0 0 20px var(--neon), 0 0 40px var(--neon-glow);
+}
+.cursor-ring {
+  position: fixed;
+  width: 36px; height: 36px;
+  border: 1px solid var(--neon);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.15s ease, width 0.2s, height 0.2s;
+  opacity: 0.5;
+}
+
+/* GRAIN OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9990;
+  opacity: 0.4;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--neon); }
+
+/* LOADING SCREEN */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+#loader.out { opacity: 0; visibility: hidden; }
+.loader-bar {
+  width: 200px;
+  height: 1px;
+  background: var(--text-dim);
+  margin-top: 16px;
+  overflow: hidden;
+}
+.loader-bar-inner {
+  height: 100%;
+  background: var(--neon);
+  box-shadow: 0 0 12px var(--neon);
+  animation: loadBar 1.6s ease forwards;
+}
+@keyframes loadBar { from { width: 0; } to { width: 100%; } }
+.loader-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--neon);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  animation: blink 0.8s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 48px;
+  background: linear-gradient(to bottom, rgba(8,8,8,0.95) 0%, transparent 100%);
+  backdrop-filter: blur(2px);
+}
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.15em;
+  color: var(--neon);
+  text-shadow: 0 0 20px var(--neon-glow);
+}
+.nav-logo span { color: var(--text-dim); }
+.nav-index {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+}
+
+/* PROGRESS BAR */
+#progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: var(--neon);
+  box-shadow: 0 0 10px var(--neon);
+  z-index: 200;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* HERO */
+#hero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-pre {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--neon);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s 1.8s forwards;
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(72px, 13vw, 180px);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+}
+
+.hero-title .line { display: block; overflow: hidden; }
+
+.hero-title .word {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+.hero-title .line:nth-child(1) .word { animation-delay: 1.9s; }
+.hero-title .line:nth-child(2) .word { animation-delay: 2.1s; }
+.hero-title .line:nth-child(3) .word { animation-delay: 2.3s; color: var(--neon); text-shadow: 0 0 60px var(--neon-glow); }
+
+.hero-sub {
+  margin-top: 40px;
+  max-width: 500px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-mid);
+  font-weight: 300;
+  opacity: 0;
+  animation: fadeUp 0.8s 2.6s forwards;
+}
+
+.hero-scroll {
+  position: absolute;
+  bottom: 40px;
+  left: 48px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  animation: fadeUp 0.8s 3s forwards;
+}
+.hero-scroll-line {
+  width: 60px;
+  height: 1px;
+  background: var(--neon);
+  position: relative;
+  overflow: hidden;
+}
+.hero-scroll-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: var(--text);
+  animation: scanLine 2s 3.2s ease infinite;
+}
+@keyframes scanLine { 0% { left: -100%; } 100% { left: 200%; } }
+.hero-scroll span {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* BIG NUMBER DECORATION */
+.hero-num {
+  position: absolute;
+  right: -20px; top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(300px, 35vw, 500px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,107,0,0.06);
+  pointer-events: none;
+  line-height: 1;
+  user-select: none;
+}
+
+/* SECTION LAYOUT */
+.section {
+  padding: 120px 48px;
+  position: relative;
+  border-top: 1px solid var(--border);
+}
+
+.section-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--neon);
+  letter-spacing: 0.3em;
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+.section-num.vis { opacity: 1; transform: translateY(0); }
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 8vw, 110px);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s 0.1s, transform 0.8s 0.1s cubic-bezier(0.16,1,0.3,1);
+}
+.section-title.vis { opacity: 1; transform: translateY(0); }
+.section-title em { color: var(--neon); font-style: normal; }
+
+.section-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--neon-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+  opacity: 0;
+  transition: opacity 0.6s 0.2s;
+}
+.section-tagline.vis { opacity: 1; }
+
+/* CARD GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+
+/* CONCEPT CARD */
+.card {
+  background: var(--bg2);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s, transform 0.7s cubic-bezier(0.16,1,0.3,1), background 0.3s;
+}
+.card.vis { opacity: 1; transform: translateY(0); }
+.card:hover { background: var(--bg3); }
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 0;
+  background: var(--neon);
+  box-shadow: 0 0 15px var(--neon-glow);
+  transition: height 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.card:hover::before { height: 100%; }
+
+.card-icon {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--neon);
+  letter-spacing: 0.25em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-icon::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--neon);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+}
+
+.card-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-mid);
+  font-weight: 300;
+}
+
+.card-body strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ANALOGY BLOCK */
+.analogy {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border-left: 2px solid var(--neon);
+  background: rgba(255,107,0,0.05);
+  border-radius: 0 4px 4px 0;
+}
+.analogy-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--neon);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.analogy p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-mid);
+  font-style: italic;
+}
+
+/* CODE BLOCK */
+.code {
+  margin-top: 20px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-mid);
+  overflow-x: auto;
+}
+.code .kw { color: var(--neon); }
+.code .str { color: #A8E6A3; }
+.code .cm { color: #4A4540; }
+.code .fn { color: var(--neon-bright); }
+.code .num { color: #82CFFF; }
+
+/* WIDE CARD */
+.card-wide {
+  grid-column: 1 / -1;
+}
+
+/* KINETIC MARQUEE */
+.marquee-wrap {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+  margin: 80px 0;
+  background: var(--bg2);
+}
+.marquee-inner {
+  display: flex;
+  gap: 60px;
+  animation: marquee 20s linear infinite;
+  white-space: nowrap;
+}
+.marquee-inner:hover { animation-play-state: paused; }
+.marquee-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+.marquee-item::after {
+  content: '◆';
+  color: var(--neon);
+  font-size: 8px;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* FULL WIDTH STATEMENT */
+.statement {
+  padding: 100px 48px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.statement-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(40px, 6vw, 80px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s, transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.statement-text.vis { opacity: 1; transform: translateY(0); }
+.statement-text em {
+  color: var(--neon);
+  font-style: normal;
+  text-shadow: 0 0 40px var(--neon-glow);
+}
+
+/* GLITCH */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+}
+.glitch::before {
+  color: #FF003C;
+  animation: glitch1 3s infinite linear;
+  clip-path: polygon(0 15%, 100% 15%, 100% 30%, 0 30%);
+}
+.glitch::after {
+  color: #00FFFF;
+  animation: glitch2 3s infinite linear;
+  clip-path: polygon(0 65%, 100% 65%, 100% 80%, 0 80%);
+}
+@keyframes glitch1 {
+  0%, 90%, 100% { transform: translateX(0); opacity: 0; }
+  92% { transform: translateX(-3px); opacity: 0.8; }
+  94% { transform: translateX(3px); opacity: 0.8; }
+  96% { transform: translateX(-1px); opacity: 0.8; }
+}
+@keyframes glitch2 {
+  0%, 91%, 100% { transform: translateX(0); opacity: 0; }
+  93% { transform: translateX(3px); opacity: 0.8; }
+  95% { transform: translateX(-3px); opacity: 0.8; }
+  97% { transform: translateX(1px); opacity: 0.8; }
+}
+
+/* INDEX LIST */
+.index-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 48px;
+}
+.index-item {
+  background: var(--bg);
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 0.5s, transform 0.5s cubic-bezier(0.16,1,0.3,1), background 0.2s;
+}
+.index-item.vis { opacity: 1; transform: translateX(0); }
+.index-item:hover { background: rgba(255,107,0,0.08); }
+.index-item:hover .index-arrow { color: var(--neon); transform: translateX(4px); }
+.index-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.05em;
+}
+.index-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+}
+.index-arrow {
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: transform 0.2s, color 0.2s;
+}
+
+/* FOOTER */
+footer {
+  padding: 60px 48px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--neon);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-shadow: 0 0 30px var(--neon-glow);
+}
+.footer-meta {
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  line-height: 2;
+}
+
+/* SECTION DIVIDER */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0 48px;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+}
+.divider-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* HIGHLIGHT BOX */
+.highlight-box {
+  margin-top: 24px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  background: rgba(255,107,0,0.03);
+  position: relative;
+}
+.highlight-box::before {
+  content: 'PENTING';
+  position: absolute;
+  top: -9px; left: 16px;
+  background: var(--bg2);
+  padding: 0 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--neon);
+  letter-spacing: 0.3em;
+}
+.highlight-box p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-mid);
+}
+
+/* ANIM HELPERS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
+}
+
+/* STAGGER DELAYS FOR CARDS */
+.card:nth-child(1) { transition-delay: 0s; }
+.card:nth-child(2) { transition-delay: 0.08s; }
+.card:nth-child(3) { transition-delay: 0.16s; }
+.card:nth-child(4) { transition-delay: 0.24s; }
+.card:nth-child(5) { transition-delay: 0.32s; }
+.card:nth-child(6) { transition-delay: 0.4s; }
+
+.index-item:nth-child(1)  { transition-delay: 0s; }
+.index-item:nth-child(2)  { transition-delay: 0.05s; }
+.index-item:nth-child(3)  { transition-delay: 0.10s; }
+.index-item:nth-child(4)  { transition-delay: 0.15s; }
+.index-item:nth-child(5)  { transition-delay: 0.20s; }
+.index-item:nth-child(6)  { transition-delay: 0.25s; }
+.index-item:nth-child(7)  { transition-delay: 0.30s; }
+.index-item:nth-child(8)  { transition-delay: 0.35s; }
+.index-item:nth-child(9)  { transition-delay: 0.40s; }
+.index-item:nth-child(10) { transition-delay: 0.45s; }
+.index-item:nth-child(11) { transition-delay: 0.50s; }
+.index-item:nth-child(12) { transition-delay: 0.55s; }
+.index-item:nth-child(13) { transition-delay: 0.60s; }
+.index-item:nth-child(14) { transition-delay: 0.65s; }
+.index-item:nth-child(15) { transition-delay: 0.70s; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .section { padding: 80px 20px; }
+  #hero { padding: 0 20px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 24px; align-items: flex-start; }
+  .footer-meta { text-align: left; }
+  .hero-scroll, .divider { padding-left: 0; margin: 0 20px; }
+  .hero-num { display: none; }
+  .marquee-wrap { margin: 40px 0; }
+  .card { padding: 28px 24px; }
+  .statement { padding: 60px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div id="progress"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-text">INITIALIZING CORE MODULES...</div>
+  <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">FUNDAMENTAL<span>.</span>DEV</div>
+  <div class="nav-index">PROGRAMMING CORE / v1.0</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-pre">// DOKUMENTASI FUNDAMENTAL</div>
+  <h1 class="hero-title">
+    <span class="line"><span class="word">PROGRAMMING</span></span>
+    <span class="line"><span class="word">DARI</span></span>
+    <span class="line"><span class="word glitch" data-text="NOLNYA">NOLNYA</span></span>
+  </h1>
+  <p class="hero-sub">
+    Semua konsep inti programming dijelaskan pake analogi dunia nyata. 
+    Bukan teori abstrak — ini cara otak manusia seharusnya belajar code.
+  </p>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <span>SCROLL UNTUK BELAJAR</span>
+  </div>
+  <div class="hero-num">15</div>
+</section>
+
+<!-- INDEX -->
+<section class="section" id="index">
+  <div class="section-num">// 00 — INDEX</div>
+  <h2 class="section-title">APA YANG<br>BAKAL <em>LO</em><br>PELAJARI</h2>
+  <p class="section-tagline">// 15 fundamental konsep — from zero to core</p>
+
+  <div class="index-list">
+    <div class="index-item"><div><div class="index-num">01</div><div class="index-name">VARIABLES</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">02</div><div class="index-name">DATA TYPES</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">03</div><div class="index-name">OPERATORS</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">04</div><div class="index-name">CONTROL FLOW</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">05</div><div class="index-name">LOOPS</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">06</div><div class="index-name">FUNCTIONS</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">07</div><div class="index-name">ARRAYS</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">08</div><div class="index-name">OBJECTS</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">09</div><div class="index-name">RECURSION</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">10</div><div class="index-name">OOP</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">11</div><div class="index-name">ERROR HANDLING</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">12</div><div class="index-name">ASYNC / ASYNC</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">13</div><div class="index-name">ALGORITHMS</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">14</div><div class="index-name">BIG O</div></div><span class="index-arrow">→</span></div>
+    <div class="index-item"><div><div class="index-num">15</div><div class="index-name">MEMORY</div></div><span class="index-arrow">→</span></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-inner">
+    <div class="marquee-item">VARIABLES</div>
+    <div class="marquee-item">DATA TYPES</div>
+    <div class="marquee-item">FUNCTIONS</div>
+    <div class="marquee-item">LOOPS</div>
+    <div class="marquee-item">ARRAYS</div>
+    <div class="marquee-item">OBJECTS</div>
+    <div class="marquee-item">RECURSION</div>
+    <div class="marquee-item">OOP</div>
+    <div class="marquee-item">ALGORITHMS</div>
+    <div class="marquee-item">BIG O</div>
+    <div class="marquee-item">ASYNC</div>
+    <div class="marquee-item">MEMORY</div>
+    <div class="marquee-item">CONTROL FLOW</div>
+    <div class="marquee-item">VARIABLES</div>
+    <div class="marquee-item">DATA TYPES</div>
+    <div class="marquee-item">FUNCTIONS</div>
+    <div class="marquee-item">LOOPS</div>
+    <div class="marquee-item">ARRAYS</div>
+    <div class="marquee-item">OBJECTS</div>
+    <div class="marquee-item">RECURSION</div>
+    <div class="marquee-item">OOP</div>
+    <div class="marquee-item">ALGORITHMS</div>
+    <div class="marquee-item">BIG O</div>
+    <div class="marquee-item">ASYNC</div>
+    <div class="marquee-item">MEMORY</div>
+  </div>
+</div>
+
+<!-- 01 VARIABLES -->
+<section class="section" id="s01">
+  <div class="section-num">// 01 — VARIABLES</div>
+  <h2 class="section-title"><em>VARIABEL</em><br>& SCOPE</h2>
+  <p class="section-tagline">// tempat nyimpen data di memori</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">VAR / LET / CONST</div>
+      <div class="card-title">VARIABLE</div>
+      <div class="card-subtitle">// storage container</div>
+      <div class="card-body">
+        Variable adalah <strong>kotak berlabel</strong> di memori komputer. Lo kasih nama kotaknya, terus isi dengan data. Kapanpun butuh data itu, tinggal panggil nama kotaknya — komputer langsung tau mau ambil dari mana.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Bayangin lo punya laci meja belajar. Lo tulis label di laci: <strong>"uang_jajan"</strong>. Lo masukin Rp50.000. Setiap mau belanja, lo buka laci "uang_jajan" — lo ga perlu inget fisik uangnya ada di mana, cukup inget nama lacinya.</p>
+        </div>
+      </div>
+      <div class="code">
+<span class="kw">let</span> uang_jajan = <span class="num">50000</span>;   <span class="cm">// bisa diubah</span>
+<span class="kw">const</span> nama = <span class="str">"rixz"</span>;    <span class="cm">// ga bisa diubah</span>
+<span class="kw">var</span> legasi = <span class="str">"hindari"</span>; <span class="cm">// old school</span>
+
+uang_jajan = uang_jajan - <span class="num">15000</span>; <span class="cm">// beli makan</span>
+<span class="cm">// uang_jajan sekarang: 35000</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">SCOPE</div>
+      <div class="card-title">SCOPE</div>
+      <div class="card-subtitle">// jangkauan variabel</div>
+      <div class="card-body">
+        Scope adalah <strong>wilayah kekuasaan</strong> sebuah variabel. Variable yang dideklarasi di dalam fungsi, cuma bisa diakses di dalam fungsi itu. Di luar? Tidak ada, tidak dikenal.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Variable di dalam fungsi itu kayak <strong>secret menu</strong> restoran — cuma orang yang ada di dapur (dalam fungsi) yang tau ada. Pelanggan di luar (kode global) ga bisa order menu itu.</p>
+        </div>
+      </div>
+      <div class="code">
+<span class="kw">let</span> global = <span class="str">"semua bisa akses"</span>;
+
+<span class="kw">function</span> <span class="fn">dapur</span>() {
+  <span class="kw">let</span> resep = <span class="str">"rahasia"</span>; <span class="cm">// local scope</span>
+  console.<span class="fn">log</span>(global);  <span class="cm">// ✅ bisa</span>
+}
+
+console.<span class="fn">log</span>(resep); <span class="cm">// ❌ ReferenceError</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 DATA TYPES -->
+<section class="section" id="s02">
+  <div class="section-num">// 02 — DATA TYPES</div>
+  <h2 class="section-title">JENIS<br><em>DATA</em></h2>
+  <p class="section-tagline">// tipe wadah yang berbeda untuk isi yang berbeda</p>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">PRIMITIVE</div>
+      <div class="card-title">STRING</div>
+      <div class="card-subtitle">// teks / karakter</div>
+      <div class="card-body">
+        Kumpulan karakter yang diapit tanda kutip. Mau nulis kata, kalimat, atau emoji — itu semua string.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>String kayak <strong>nametag</strong> — bisa isinya nama, nomor HP, apapun yang ditulis sebagai teks.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> nama = <span class="str">"rixz"</span>;
+<span class="kw">let</span> kalimat = <span class="str">`Halo ${nama}!`</span>;</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">PRIMITIVE</div>
+      <div class="card-title">NUMBER</div>
+      <div class="card-subtitle">// angka integer & float</div>
+      <div class="card-body">
+        Semua angka — bulat maupun desimal. Bisa dioprasikan: plus, kurang, kali, bagi.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Number kayak <strong>timbangan digital</strong> — bisa nampilin 5 kg atau 5.75 kg, tapi bukan "lima kilogram" (itu string).</p>
+        </div>
+        <div class="code"><span class="kw">let</span> umur = <span class="num">17</span>;
+<span class="kw">let</span> pi = <span class="num">3.14</span>;
+<span class="kw">let</span> inf = <span class="kw">Infinity</span>;</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">PRIMITIVE</div>
+      <div class="card-title">BOOLEAN</div>
+      <div class="card-subtitle">// true / false only</div>
+      <div class="card-body">
+        Cuma dua nilai: <strong>true atau false</strong>. Titik. Tidak ada abu-abu di sini.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Boolean kayak <strong>saklar lampu</strong> — cuma ada nyala (true) atau mati (false). Ga ada "setengah nyala".</p>
+        </div>
+        <div class="code"><span class="kw">let</span> sudahMakan = <span class="kw">true</span>;
+<span class="kw">let</span> sudahTidur = <span class="kw">false</span>;
+<span class="kw">let</span> lapar = !sudahMakan;</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">SPECIAL</div>
+      <div class="card-title">NULL</div>
+      <div class="card-subtitle">// sengaja dikosongkan</div>
+      <div class="card-body">
+        Nilai yang sengaja dikosongkan. Beda sama kosong karena ga diisi — ini emang ditulis kosong secara eksplisit.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Null kayak <strong>piring kosong yang sengaja lo taruh di meja</strong> — emang mau kosong, bukan lupa isi.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> pacar = <span class="kw">null</span>;
+<span class="cm">// sengaja null, bukan lupa</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">SPECIAL</div>
+      <div class="card-title">UNDEFINED</div>
+      <div class="card-subtitle">// belum diisi / ga ada</div>
+      <div class="card-body">
+        Variable yang dideklarasi tapi belum diisi nilainya. JavaScript sendiri yang kasih status ini.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Undefined kayak <strong>laci yang ada labelnya tapi dalamnya ga ada apa-apa</strong> karena lo lupa isi. Beda sama null yang emang sengaja dikosongkan.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> x;
+console.<span class="fn">log</span>(x); <span class="cm">// undefined</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">COMPLEX</div>
+      <div class="card-title">OBJECT</div>
+      <div class="card-subtitle">// kumpulan key-value</div>
+      <div class="card-body">
+        Tipe data kompleks yang bisa nyimpen banyak nilai sekaligus dalam format key-value.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Object kayak <strong>KTP</strong> — satu dokumen yang nyimpen banyak info: nama, NIK, TTL, alamat. Semua tentang satu entitas.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> user = {
+  nama: <span class="str">"rixz"</span>,
+  umur: <span class="num">17</span>,
+  dev: <span class="kw">true</span>
+};</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 OPERATORS -->
+<div class="divider"><div class="divider-text">// OPERATORS & EXPRESSIONS</div><div class="divider-line"></div></div>
+<section class="section" id="s03">
+  <div class="section-num">// 03 — OPERATORS</div>
+  <h2 class="section-title"><em>OPERATOR</em><br>& EKSPRESI</h2>
+  <p class="section-tagline">// simbol yang melakukan operasi pada data</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">ARITHMETIC</div>
+      <div class="card-title">ARITMATIKA</div>
+      <div class="card-subtitle">// matematika dasar</div>
+      <div class="card-body">
+        Operator untuk operasi hitung: <strong>+, -, *, /, %, **</strong>. Persis kayak kalkulator biasa, tapi ada tambahan: modulo (sisa bagi) dan eksponen.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p><strong>%</strong> (modulo) kayak lo bagi 10 permen ke 3 orang — hasilnya 1 sisa. Itu yang dikembalikan modulo. Berguna banget buat cek angka ganjil/genap.</p>
+        </div>
+        <div class="code"><span class="num">10</span> % <span class="num">3</span>  <span class="cm">// → 1 (sisa bagi)</span>
+<span class="num">2</span> ** <span class="num">8</span>  <span class="cm">// → 256 (2 pangkat 8)</span>
+<span class="num">7</span> % <span class="num">2</span> === <span class="num">0</span> <span class="cm">// → false (ganjil)</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">COMPARISON</div>
+      <div class="card-title">PERBANDINGAN</div>
+      <div class="card-subtitle">// membandingkan dua nilai</div>
+      <div class="card-body">
+        Operator yang hasilnya selalu boolean: <strong>===, !==, &gt;, &lt;, &gt;=, &lt;=</strong>. Gunakan selalu <strong>===</strong> (strict equality), bukan == yang bisa misleading.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p><strong>==</strong> kayak nanya "isi tas sama ga?" — dua tas beda tapi sama isinya dianggap sama. <strong>===</strong> kayak nanya "ini tas yang persis sama atau beda?" — beda tas tetap beda meski isinya sama.</p>
+        </div>
+        <div class="code"><span class="num">5</span> == <span class="str">"5"</span>   <span class="cm">// → true  ⚠️ dangerous</span>
+<span class="num">5</span> === <span class="str">"5"</span>  <span class="cm">// → false ✅ correct</span>
+<span class="num">10</span> > <span class="num">5</span>    <span class="cm">// → true</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATEMENT -->
+<div class="statement" id="st1">
+  <p class="statement-text">
+    CODE ADALAH <em>INSTRUKSI</em><br>
+    BUAT KOMPUTER YANG<br>
+    <em>GA BISA NEBAK</em> MAKSUD LO
+  </p>
+</div>
+
+<!-- 04 CONTROL FLOW -->
+<section class="section" id="s04">
+  <div class="section-num">// 04 — CONTROL FLOW</div>
+  <h2 class="section-title">ALUR<br><em>KONTROL</em></h2>
+  <p class="section-tagline">// percabangan logika program</p>
+
+  <div class="grid-2">
+    <div class="card card-wide">
+      <div class="card-icon">IF / ELSE IF / ELSE</div>
+      <div class="card-title">PERCABANGAN</div>
+      <div class="card-subtitle">// decision making machine</div>
+      <div class="card-body">
+        Program butuh membuat keputusan — "kalau ini terjadi, lakukan A; kalau itu, lakukan B; kalau tidak ada yang cocok, lakukan C." Itulah if-else.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Bayangkan lo ada di persimpangan jalan. Ada papan rambu: <strong>"Kalau hujan → belok kiri ke warung"</strong>, <strong>"Kalau terik → jalan lurus ke kolam renang"</strong>, <strong>"Kalau ga ada keduanya → pulang."</strong> Program lo pun begitu — tiap kondisi punya jalurnya sendiri.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> cuaca = <span class="str">"hujan"</span>;
+
+<span class="kw">if</span> (cuaca === <span class="str">"hujan"</span>) {
+  console.<span class="fn">log</span>(<span class="str">"ke warung"</span>);
+} <span class="kw">else if</span> (cuaca === <span class="str">"terik"</span>) {
+  console.<span class="fn">log</span>(<span class="str">"ke kolam renang"</span>);
+} <span class="kw">else</span> {
+  console.<span class="fn">log</span>(<span class="str">"pulang aja"</span>);
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:2px" class="grid-2">
+    <div class="card">
+      <div class="card-icon">SWITCH</div>
+      <div class="card-title">SWITCH</div>
+      <div class="card-subtitle">// multi-case cleaner</div>
+      <div class="card-body">
+        Alternatif if-else kalau lo punya banyak kondisi dari satu variabel yang sama. Lebih rapi dan readable.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Switch kayak <strong>mesin vending</strong> — lo pilih angka 1, dapat air; angka 2, dapat snack; angka lain, ga ada yang keluar. Setiap "case" adalah satu pilihan yang valid.</p>
+        </div>
+        <div class="code"><span class="kw">switch</span>(hari) {
+  <span class="kw">case</span> <span class="str">"Senin"</span>: 
+    console.<span class="fn">log</span>(<span class="str">"Mager"</span>); <span class="kw">break</span>;
+  <span class="kw">case</span> <span class="str">"Jumat"</span>: 
+    console.<span class="fn">log</span>(<span class="str">"Hore"</span>); <span class="kw">break</span>;
+  <span class="kw">default</span>: 
+    console.<span class="fn">log</span>(<span class="str">"Biasa aja"</span>);
+}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">TERNARY</div>
+      <div class="card-title">TERNARY</div>
+      <div class="card-subtitle">// if-else satu baris</div>
+      <div class="card-body">
+        Cara singkat nulis if-else dalam satu ekspresi. Format: <strong>kondisi ? nilaiBenar : nilaiSalah</strong>.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Ternary kayak lo nanya ke temen: <strong>"Mau nasi goreng apa mie goreng?"</strong> — dua pilihan, satu jawaban. Ringkas, cepat, no drama.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> umur = <span class="num">17</span>;
+<span class="kw">let</span> status = umur >= <span class="num">18</span>
+  ? <span class="str">"dewasa"</span>
+  : <span class="str">"minor"</span>;
+<span class="cm">// status = "minor"</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 LOOPS -->
+<section class="section" id="s05">
+  <div class="section-num">// 05 — LOOPS</div>
+  <h2 class="section-title">LOOP &<br><em>ITERASI</em></h2>
+  <p class="section-tagline">// ulangi aksi tanpa nulis berulang</p>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">FOR LOOP</div>
+      <div class="card-title">FOR</div>
+      <div class="card-subtitle">// loop dengan counter</div>
+      <div class="card-body">
+        Loop paling umum. Lo tau persis mau loop berapa kali.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak <strong>mesin cuci</strong> yang lo set 5 putaran — dia muter persis 5x, lalu berhenti. Terstruktur dan terprediksi.</p>
+        </div>
+        <div class="code"><span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">5</span>; i++) {
+  console.<span class="fn">log</span>(<span class="str">"Putaran"</span>, i);
+}
+<span class="cm">// 0, 1, 2, 3, 4</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">WHILE LOOP</div>
+      <div class="card-title">WHILE</div>
+      <div class="card-subtitle">// loop sampai kondisi false</div>
+      <div class="card-body">
+        Loop yang jalan selama kondisi masih true. Hati-hati — salah kondisi bisa infinite loop.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak lo <strong>ngantri ATM</strong> — lo terus nunggu selama antrian masih ada. Begitu antrian habis, lo jalan.</p>
+        </div>
+        <div class="code"><span class="kw">let</span> antrian = <span class="num">5</span>;
+<span class="kw">while</span> (antrian > <span class="num">0</span>) {
+  console.<span class="fn">log</span>(<span class="str">"Nunggu..."</span>);
+  antrian--;
+}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">FOR...OF / MAP</div>
+      <div class="card-title">ITERASI</div>
+      <div class="card-subtitle">// loop modern di array</div>
+      <div class="card-body">
+        Cara modern iterasi array. <strong>.forEach, .map, .filter</strong> lebih clean dari for biasa.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak lo punya <strong>konveyor sushi</strong> — tiap piring (elemen) lewat, lo lakuin sesuatu. Ga perlu hitung sendiri ada berapa piring.</p>
+        </div>
+        <div class="code"><span class="kw">const</span> menu = [<span class="str">"nasi"</span>, <span class="str">"mie"</span>, <span class="str">"soto"</span>];
+
+menu.<span class="fn">forEach</span>(m => {
+  console.<span class="fn">log</span>(<span class="str">"Masak:"</span>, m);
+});
+
+<span class="kw">const</span> mahal = menu.<span class="fn">map</span>(m => m + <span class="str">" spesial"</span>);</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 FUNCTIONS -->
+<section class="section" id="s06">
+  <div class="section-num">// 06 — FUNCTIONS</div>
+  <h2 class="section-title"><em>FUNGSI</em><br>& CLOSURE</h2>
+  <p class="section-tagline">// blok kode yang bisa dipanggil berulang kali</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">FUNCTION DECLARATION</div>
+      <div class="card-title">FUNGSI</div>
+      <div class="card-subtitle">// reusable code block</div>
+      <div class="card-body">
+        Fungsi adalah <strong>resep masakan</strong> yang bisa dipakai berulang. Tulis sekali, panggil berkali-kali dengan bahan (argumen) berbeda.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Chef punya resep <strong>bikin nasi goreng</strong>: input → bahan-bahan, proses → masak, output → nasi goreng jadi. Resepnya ga berubah, tapi bahannya bisa beda tiap sesi masak.</p>
+        </div>
+        <div class="code"><span class="kw">function</span> <span class="fn">masakNasiGoreng</span>(bahan, level) {
+  <span class="kw">return</span> <span class="str">`${bahan} goreng level ${level}`</span>;
+}
+
+<span class="fn">masakNasiGoreng</span>(<span class="str">"ayam"</span>, <span class="num">3</span>);
+<span class="cm">// → "ayam goreng level 3"</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">CLOSURE</div>
+      <div class="card-title">CLOSURE</div>
+      <div class="card-subtitle">// fungsi yang ingat scope asalnya</div>
+      <div class="card-body">
+        Closure adalah fungsi yang <strong>mengingat variabel dari scope luar</strong>-nya bahkan setelah fungsi luar selesai dieksekusi. Konsep penting banget di JavaScript.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak lo <strong>kerja di kafe terus resign</strong>, tapi masih inget resep rahasia di sana. Fungsi dalam "mengingat" lingkungan tempat dia lahir, meski lingkungan itu udah "tutup."</p>
+        </div>
+        <div class="code"><span class="kw">function</span> <span class="fn">bikinCounter</span>() {
+  <span class="kw">let</span> count = <span class="num">0</span>;
+  <span class="kw">return function</span>() {
+    count++;
+    <span class="kw">return</span> count;
+  };
+}
+<span class="kw">const</span> counter = <span class="fn">bikinCounter</span>();
+<span class="fn">counter</span>(); <span class="cm">// → 1</span>
+<span class="fn">counter</span>(); <span class="cm">// → 2</span></div>
+      </div>
+    </div>
+
+    <div class="card card-wide">
+      <div class="card-icon">ARROW FUNCTIONS</div>
+      <div class="card-title">ARROW FUNCTION</div>
+      <div class="card-subtitle">// sintaks ringkas ES6+</div>
+      <div class="card-body">
+        Cara penulisan fungsi yang lebih pendek. Perbedaan utama: <strong>tidak punya "this" sendiri</strong> — dia pakai "this" dari scope sekitarnya.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Arrow function kayak <strong>asisten yang ga punya ego sendiri</strong> — dia merujuk ke bos-nya (scope luar) untuk identitas. Fungsi biasa punya identitas sendiri, arrow function ngikut siapa yang memanggil.</p>
+        </div>
+        <div class="code"><span class="cm">// Function biasa</span>
+<span class="kw">function</span> <span class="fn">tambah</span>(a, b) { <span class="kw">return</span> a + b; }
+
+<span class="cm">// Arrow function — lebih ringkas</span>
+<span class="kw">const</span> <span class="fn">tambah</span> = (a, b) => a + b;
+
+<span class="cm">// Dengan satu parameter — ga butuh kurung</span>
+<span class="kw">const</span> <span class="fn">kuadrat</span> = n => n * n;
+
+<span class="cm">// Dengan body — butuh return eksplisit</span>
+<span class="kw">const</span> <span class="fn">salam</span> = nama => {
+  <span class="kw">const</span> pesan = <span class="str">`Halo, ${nama}!`</span>;
+  <span class="kw">return</span> pesan;
+};</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 ARRAYS -->
+<section class="section" id="s07">
+  <div class="section-num">// 07 — ARRAYS</div>
+  <h2 class="section-title">ARRAY<br><em>& METHOD</em></h2>
+  <p class="section-tagline">// list data yang terurut</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">ARRAY BASICS</div>
+      <div class="card-title">ARRAY</div>
+      <div class="card-subtitle">// rak buku bernomor</div>
+      <div class="card-body">
+        Array adalah <strong>daftar terurut</strong> dari nilai-nilai. Diakses pakai indeks angka mulai dari 0. Penting: indeks dimulai dari NOL, bukan satu.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Array kayak <strong>rak buku di perpustakaan</strong> yang sudah dinomerin. Buku pertama ada di nomor 0, kedua di nomor 1. Mau ambil buku, tinggal sebut nomornya.</p>
+        </div>
+        <div class="code"><span class="kw">const</span> buku = [<span class="str">"Fiksi"</span>, <span class="str">"Sains"</span>, <span class="str">"Tech"</span>];
+
+buku[<span class="num">0</span>]; <span class="cm">// → "Fiksi"</span>
+buku[<span class="num">2</span>]; <span class="cm">// → "Tech"</span>
+buku.<span class="fn">length</span>; <span class="cm">// → 3</span>
+buku.<span class="fn">push</span>(<span class="str">"Art"</span>); <span class="cm">// tambah di akhir</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">ARRAY METHODS</div>
+      <div class="card-title">FILTER / MAP / REDUCE</div>
+      <div class="card-subtitle">// trio paling powerful</div>
+      <div class="card-body">
+        Tiga method paling sering dipakai di dunia nyata: <strong>filter</strong> → saring, <strong>map</strong> → transformasi, <strong>reduce</strong> → gabungkan jadi satu nilai.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p><strong>Filter</strong> kayak KPU — hanya loloskan yang memenuhi syarat. <strong>Map</strong> kayak pabrik — ubah tiap bahan baku jadi produk jadi. <strong>Reduce</strong> kayak kasir — totalkan semua belanjaan jadi satu angka.</p>
+        </div>
+        <div class="code"><span class="kw">const</span> nilai = [<span class="num">45</span>, <span class="num">78</span>, <span class="num">90</span>, <span class="num">55</span>, <span class="num">88</span>];
+
+<span class="cm">// Filter: ambil yang lulus (≥60)</span>
+<span class="kw">const</span> lulus = nilai.<span class="fn">filter</span>(n => n >= <span class="num">60</span>);
+<span class="cm">// [78, 90, 88]</span>
+
+<span class="cm">// Map: tambah bonus 5 poin</span>
+<span class="kw">const</span> bonus = nilai.<span class="fn">map</span>(n => n + <span class="num">5</span>);
+
+<span class="cm">// Reduce: total semua nilai</span>
+<span class="kw">const</span> total = nilai.<span class="fn">reduce</span>((acc, n) => acc + n, <span class="num">0</span>);
+<span class="cm">// 356</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 OBJECTS -->
+<section class="section" id="s08">
+  <div class="section-num">// 08 — OBJECTS</div>
+  <h2 class="section-title"><em>OBJECT</em><br>& PROPERTY</h2>
+  <p class="section-tagline">// blueprint data terstruktur</p>
+
+  <div class="grid-2">
+    <div class="card card-wide">
+      <div class="card-icon">OBJECT LITERAL</div>
+      <div class="card-title">OBJECT</div>
+      <div class="card-subtitle">// key-value data structure</div>
+      <div class="card-body">
+        Object adalah koleksi <strong>key-value pairs</strong>. Key adalah nama properti, value adalah nilainya. Value bisa berupa tipe data apapun — termasuk fungsi dan array.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Object kayak <strong>profil karakter game RPG</strong> — satu karakter punya nama, level, HP, inventory (array), dan skill (fungsi). Semuanya tergabung dalam satu entitas yang terorganisir.</p>
+        </div>
+        <div class="code"><span class="kw">const</span> karakter = {
+  nama: <span class="str">"rixz"</span>,
+  level: <span class="num">99</span>,
+  hp: <span class="num">1000</span>,
+  inventory: [<span class="str">"sword"</span>, <span class="str">"potion"</span>],
+  <span class="fn">serang</span>: <span class="kw">function</span>() {
+    <span class="kw">return</span> <span class="str">`${this.nama} menyerang!`</span>;
+  }
+};
+
+karakter.nama;         <span class="cm">// "rixz" — dot notation</span>
+karakter[<span class="str">"level"</span>];   <span class="cm">// 99 — bracket notation</span>
+karakter.<span class="fn">serang</span>();   <span class="cm">// "rixz menyerang!"</span>
+
+<span class="cm">// Destructuring — shortcut keren</span>
+<span class="kw">const</span> { nama, level } = karakter;
+console.<span class="fn">log</span>(nama, level); <span class="cm">// "rixz" 99</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATEMENT 2 -->
+<div class="statement" id="st2">
+  <p class="statement-text">
+    SETIAP PROGRAM KOMPLEKS<br>
+    ADALAH KUMPULAN<br>
+    <em>KONSEP SEDERHANA</em> INI
+  </p>
+</div>
+
+<!-- 09 RECURSION -->
+<section class="section" id="s09">
+  <div class="section-num">// 09 — RECURSION</div>
+  <h2 class="section-title">REKURSI<br><em>AKA LOOP</em><br>YG FILOSOFIS</h2>
+  <p class="section-tagline">// fungsi yang memanggil dirinya sendiri</p>
+
+  <div class="grid-2">
+    <div class="card card-wide">
+      <div class="card-icon">RECURSIVE FUNCTION</div>
+      <div class="card-title">RECURSION</div>
+      <div class="card-subtitle">// diri sendiri → diri sendiri → diri sendiri</div>
+      <div class="card-body">
+        Rekursi adalah teknik di mana sebuah fungsi <strong>memanggil dirinya sendiri</strong> sampai mencapai kondisi berhenti (base case). Tanpa base case, rekursi jalan terus sampai crash.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Bayangkan lo berdiri di antara <strong>dua cermin yang berhadapan</strong>. Lo liat bayangan lo, di dalam bayangan itu ada bayangan lagi, di dalamnya lagi, terus-terusan. Rekursi begitu — tapi dia harus punya titik berhenti sebelum jadi infinite. Base case-nya: cermin terakhir yang ga memantul lagi.</p>
+        </div>
+        <div class="code"><span class="cm">// Faktorial: 5! = 5×4×3×2×1</span>
+<span class="kw">function</span> <span class="fn">faktorial</span>(n) {
+  <span class="cm">// Base case — titik berhenti WAJIB ADA</span>
+  <span class="kw">if</span> (n <= <span class="num">1</span>) <span class="kw">return</span> <span class="num">1</span>;
+
+  <span class="cm">// Recursive case — panggil diri sendiri</span>
+  <span class="kw">return</span> n * <span class="fn">faktorial</span>(n - <span class="num">1</span>);
+}
+
+<span class="fn">faktorial</span>(<span class="num">5</span>);
+<span class="cm">// 5 × faktorial(4)</span>
+<span class="cm">// 5 × 4 × faktorial(3)</span>
+<span class="cm">// 5 × 4 × 3 × faktorial(2)</span>
+<span class="cm">// 5 × 4 × 3 × 2 × 1 = 120</span></div>
+        <div class="highlight-box">
+          <p>Rekursi powerful tapi bisa lebih lambat dari loop biasa karena setiap pemanggilan nyimpen state di call stack. Untuk data besar, pertimbangkan iterasi atau tail recursion optimization.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 OOP -->
+<section class="section" id="s10">
+  <div class="section-num">// 10 — OOP</div>
+  <h2 class="section-title">OBJECT<br><em>ORIENTED</em><br>PROGRAMMING</h2>
+  <p class="section-tagline">// paradigma program berbasis objek</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">CLASS & INSTANCE</div>
+      <div class="card-title">CLASS</div>
+      <div class="card-subtitle">// cetakan / blueprint</div>
+      <div class="card-body">
+        Class adalah <strong>blueprint</strong>. Dari satu class, lo bisa bikin banyak objek dengan struktur yang sama tapi data berbeda.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Class kayak <strong>cetakan kue</strong> — cetakannya satu, tapi lo bisa bikin puluhan kue dari cetakan itu. Tiap kue (instance) sama bentuknya, tapi bisa beda topping (properti).</p>
+        </div>
+        <div class="code"><span class="kw">class</span> <span class="fn">Karakter</span> {
+  <span class="fn">constructor</span>(nama, level) {
+    <span class="kw">this</span>.nama = nama;
+    <span class="kw">this</span>.level = level;
+    <span class="kw">this</span>.hp = level * <span class="num">100</span>;
+  }
+
+  <span class="fn">info</span>() {
+    <span class="kw">return</span> <span class="str">`${this.nama} Lv.${this.level}`</span>;
+  }
+}
+
+<span class="kw">const</span> hero  = <span class="kw">new</span> <span class="fn">Karakter</span>(<span class="str">"rixz"</span>, <span class="num">50</span>);
+<span class="kw">const</span> villain = <span class="kw">new</span> <span class="fn">Karakter</span>(<span class="str">"boss"</span>, <span class="num">99</span>);</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">INHERITANCE</div>
+      <div class="card-title">INHERITANCE</div>
+      <div class="card-subtitle">// mewarisi sifat class induk</div>
+      <div class="card-body">
+        Class bisa <strong>mewarisi</strong> properti dan method dari class lain. Child class dapat semua dari parent, plus bisa tambahin fitur sendiri.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak <strong>subclass anak dari orang tua</strong>. Lo dapat gen dan sifat dasar dari orang tua (napas, jantung), tapi lo juga punya keunikan sendiri (bisa coding, suka nge-game).</p>
+        </div>
+        <div class="code"><span class="kw">class</span> <span class="fn">Mage</span> <span class="kw">extends</span> <span class="fn">Karakter</span> {
+  <span class="fn">constructor</span>(nama, level) {
+    <span class="kw">super</span>(nama, level); <span class="cm">// panggil parent</span>
+    <span class="kw">this</span>.mana = <span class="num">500</span>;
+  }
+
+  <span class="fn">sihir</span>() {
+    <span class="kw">return</span> <span class="str">`${this.nama} cast fireball!`</span>;
+  }
+}
+
+<span class="kw">const</span> mage = <span class="kw">new</span> <span class="fn">Mage</span>(<span class="str">"Aria"</span>, <span class="num">45</span>);
+mage.<span class="fn">info</span>();  <span class="cm">// ✅ dari parent</span>
+mage.<span class="fn">sihir</span>(); <span class="cm">// ✅ milik sendiri</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 ERROR HANDLING -->
+<section class="section" id="s11">
+  <div class="section-num">// 11 — ERROR HANDLING</div>
+  <h2 class="section-title"><em>ERROR</em><br>HANDLING</h2>
+  <p class="section-tagline">// nangkep error sebelum crash app lo</p>
+
+  <div class="grid-2">
+    <div class="card card-wide">
+      <div class="card-icon">TRY / CATCH / FINALLY</div>
+      <div class="card-title">TRY-CATCH</div>
+      <div class="card-subtitle">// jaring pengaman akrobat</div>
+      <div class="card-body">
+        Kode yang <em>mungkin</em> gagal dibungkus di blok <strong>try</strong>. Kalau gagal, eksekusi langsung lompat ke <strong>catch</strong>. Blok <strong>finally</strong> selalu jalan, berhasil atau gagal sekalipun.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Bayangin <strong>akrobat di sirkus</strong>. <strong>Try</strong> = dia coba aksi berbahaya. <strong>Catch</strong> = jaring pengaman kalau dia jatuh (program ga langsung crash, tapi handle error-nya). <strong>Finally</strong> = musik tetap main apapun yang terjadi — show must go on.</p>
+        </div>
+        <div class="code"><span class="kw">async function</span> <span class="fn">fetchData</span>(url) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url);
+    
+    <span class="kw">if</span> (!res.ok) {
+      <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP error: ${res.status}`</span>);
+    }
+    
+    <span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="kw">return</span> data;
+
+  } <span class="kw">catch</span> (error) {
+    console.<span class="fn">error</span>(<span class="str">"Gagal fetch:"</span>, error.message);
+    <span class="kw">return null</span>; <span class="cm">// graceful fallback</span>
+
+  } <span class="kw">finally</span> {
+    console.<span class="fn">log</span>(<span class="str">"Selesai — berhasil atau gagal"</span>);
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 ASYNC -->
+<section class="section" id="s12">
+  <div class="section-num">// 12 — ASYNCHRONOUS</div>
+  <h2 class="section-title">ASYNC<br><em>AWAIT</em><br>& PROMISE</h2>
+  <p class="section-tagline">// handle operasi yang butuh waktu</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">PROMISE</div>
+      <div class="card-title">PROMISE</div>
+      <div class="card-subtitle">// janji yang akan terpenuhi</div>
+      <div class="card-body">
+        Promise adalah objek yang merepresentasikan <strong>operasi yang belum selesai</strong>. State-nya: pending → fulfilled atau rejected.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Promise kayak <strong>struk nomor antrian ojol</strong> — driver udah di-assign (promise dibuat), tapi makanannya belum datang. Nanti bisa .then (makanan sampai) atau .catch (dibatalkan).</p>
+        </div>
+        <div class="code"><span class="kw">const</span> orderMakanan = <span class="kw">new</span> <span class="fn">Promise</span>((resolve, reject) => {
+  setTimeout(() => {
+    <span class="kw">const</span> berhasil = <span class="kw">true</span>;
+    <span class="kw">if</span> (berhasil) <span class="fn">resolve</span>(<span class="str">"nasi goreng tiba!"</span>);
+    <span class="kw">else</span> <span class="fn">reject</span>(<span class="str">"order dibatalkan"</span>);
+  }, <span class="num">2000</span>);
+});
+
+orderMakanan
+  .<span class="fn">then</span>(msg => console.<span class="fn">log</span>(msg))
+  .<span class="fn">catch</span>(err => console.<span class="fn">log</span>(err));</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">ASYNC / AWAIT</div>
+      <div class="card-title">ASYNC/AWAIT</div>
+      <div class="card-subtitle">// promise tapi lebih manusiawi</div>
+      <div class="card-body">
+        Sintaks modern yang bikin async code kelihatan kayak synchronous. Lebih mudah dibaca dan di-debug.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p><strong>Async/await</strong> kayak lo ngobrol santai: "Oke, gua tunggu dulu makanannya (<em>await</em>), baru gua makan." Bukan kayak callback hell yang kayak nenek-nenek cerita bercabang tanpa ujung.</p>
+        </div>
+        <div class="code"><span class="kw">async function</span> <span class="fn">ambilUserData</span>(id) {
+  <span class="cm">// await = tunggu sampai selesai</span>
+  <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">fetchUser</span>(id);
+  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">fetchPosts</span>(user.id);
+  <span class="kw">const</span> likes = <span class="kw">await</span> <span class="fn">fetchLikes</span>(posts);
+
+  <span class="kw">return</span> { user, posts, likes };
+}
+
+<span class="cm">// Run parallel — lebih cepat</span>
+<span class="kw">const</span> [a, b] = <span class="kw">await</span> Promise.<span class="fn">all</span>([<span class="fn">taskA</span>(), <span class="fn">taskB</span>()]);</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 ALGORITHMS -->
+<section class="section" id="s13">
+  <div class="section-num">// 13 — ALGORITHMS</div>
+  <h2 class="section-title">ALGORITMA<br><em>DASAR</em></h2>
+  <p class="section-tagline">// langkah-langkah terstruktur menyelesaikan masalah</p>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon">SEARCHING</div>
+      <div class="card-title">BINARY SEARCH</div>
+      <div class="card-subtitle">// cari data sorted</div>
+      <div class="card-body">
+        Cari data di list sorted dengan cara <strong>terus belah dua</strong>. Jauh lebih cepat dari cek satu-satu.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Cari kata di kamus — lo ga mulai dari halaman 1. Lo buka tengah, cek: lebih awal atau lebih belakang? Terus belah. Kata "Zebra" ketemu tanpa baca semua kamus.</p>
+        </div>
+        <div class="code"><span class="kw">function</span> <span class="fn">binarySearch</span>(arr, target) {
+  <span class="kw">let</span> lo = <span class="num">0</span>, hi = arr.length - <span class="num">1</span>;
+  <span class="kw">while</span> (lo <= hi) {
+    <span class="kw">let</span> mid = Math.<span class="fn">floor</span>((lo+hi)/<span class="num">2</span>);
+    <span class="kw">if</span> (arr[mid] === target) <span class="kw">return</span> mid;
+    <span class="kw">if</span> (arr[mid] < target) lo = mid+<span class="num">1</span>;
+    <span class="kw">else</span> hi = mid-<span class="num">1</span>;
+  }
+  <span class="kw">return</span> -<span class="num">1</span>;
+}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">SORTING</div>
+      <div class="card-title">BUBBLE SORT</div>
+      <div class="card-subtitle">// sorting paling simpel</div>
+      <div class="card-body">
+        Bandingkan dua elemen bersebelahan, swap kalau salah urutan. Ulangi sampai semua urut. O(n²) — lambat, tapi gampang dipahami.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak ngantri yang ga rapi — lo minta satu-satu: "Lho, lo lebih tinggi, tukar tempat dulu." Pelan, tapi akhirnya rapi.</p>
+        </div>
+        <div class="code"><span class="kw">function</span> <span class="fn">bubbleSort</span>(arr) {
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < arr.length; i++) {
+    <span class="kw">for</span> (<span class="kw">let</span> j = <span class="num">0</span>; j < arr.length-i-<span class="num">1</span>; j++) {
+      <span class="kw">if</span> (arr[j] > arr[j+<span class="num">1</span>]) {
+        [arr[j], arr[j+<span class="num">1</span>]] = [arr[j+<span class="num">1</span>], arr[j]];
+      }
+    }
+  }
+  <span class="kw">return</span> arr;
+}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">DIVIDE & CONQUER</div>
+      <div class="card-title">MERGE SORT</div>
+      <div class="card-subtitle">// sorting lebih efisien</div>
+      <div class="card-body">
+        Bagi array jadi dua, sort masing-masing, lalu gabung. O(n log n) — jauh lebih cepat dari bubble sort untuk data besar.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Kayak <strong>sortir kartu di kasino</strong> — bagi dua tumpukan, sortir masing-masing, lalu gabung dengan bandingkan kartu teratas satu-satu. Lebih cepat dari sortir satu tumpukan besar.</p>
+        </div>
+        <div class="code"><span class="cm">// Divide → Conquer → Merge</span>
+<span class="kw">function</span> <span class="fn">mergeSort</span>(arr) {
+  <span class="kw">if</span> (arr.length <= <span class="num">1</span>) <span class="kw">return</span> arr;
+  <span class="kw">const</span> mid = Math.<span class="fn">floor</span>(arr.length/<span class="num">2</span>);
+  <span class="kw">const</span> L = <span class="fn">mergeSort</span>(arr.<span class="fn">slice</span>(<span class="num">0</span>, mid));
+  <span class="kw">const</span> R = <span class="fn">mergeSort</span>(arr.<span class="fn">slice</span>(mid));
+  <span class="kw">return</span> <span class="fn">merge</span>(L, R);
+}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 BIG O -->
+<section class="section" id="s14">
+  <div class="section-num">// 14 — BIG O NOTATION</div>
+  <h2 class="section-title">BIG O<br><em>NOTATION</em></h2>
+  <p class="section-tagline">// ukuran efisiensi algoritma</p>
+
+  <div class="grid-2">
+    <div class="card card-wide">
+      <div class="card-icon">TIME COMPLEXITY</div>
+      <div class="card-title">TIME COMPLEXITY</div>
+      <div class="card-subtitle">// seberapa lambat kode lo seiring data membesar</div>
+      <div class="card-body">
+        Big O mendeskripsikan <strong>bagaimana waktu eksekusi tumbuh</strong> seiring ukuran input bertambah. Bukan ngukur detik — tapi pola pertumbuhannya.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p>Bayangin lo cari kunci yang hilang. <strong>O(1)</strong>: lo tau persis kunci ada di saku kiri — langsung ketemu. <strong>O(n)</strong>: lo cek tiap saku satu-satu. <strong>O(n²)</strong>: lo cek tiap saku, dan tiap saku punya saku lagi yang harus dicek. <strong>O(log n)</strong>: buku telepon — lo langsung belah ke tengah, bukan cek satu-satu.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">O(1)</div>
+      <div class="card-title">CONSTANT</div>
+      <div class="card-subtitle">// selalu sama cepatnya</div>
+      <div class="card-body">
+        Waktu eksekusi <strong>tidak berubah</strong> meski data makin besar. Ini yang ideal.
+        <div class="code"><span class="cm">// Akses array by index = O(1)</span>
+<span class="kw">const</span> x = arr[<span class="num">0</span>]; <span class="cm">// langsung</span>
+<span class="kw">const</span> y = arr[<span class="num">999</span>]; <span class="cm">// sama cepatnya</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">O(n) / O(n²)</div>
+      <div class="card-title">LINEAR / QUADRATIC</div>
+      <div class="card-subtitle">// tumbuh seiring data</div>
+      <div class="card-body">
+        <strong>O(n)</strong>: satu loop. <strong>O(n²)</strong>: loop di dalam loop. Makin besar data, makin kerasa bedanya.
+        <div class="code"><span class="cm">// O(n) — satu loop</span>
+arr.<span class="fn">forEach</span>(x => console.<span class="fn">log</span>(x));
+
+<span class="cm">// O(n²) — nested loop</span>
+<span class="kw">for</span> (<span class="kw">let</span> i <span class="kw">of</span> arr)
+  <span class="kw">for</span> (<span class="kw">let</span> j <span class="kw">of</span> arr)
+    console.<span class="fn">log</span>(i, j);</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 MEMORY -->
+<section class="section" id="s15">
+  <div class="section-num">// 15 — MEMORY MANAGEMENT</div>
+  <h2 class="section-title">MANAJEMEN<br><em>MEMORI</em></h2>
+  <p class="section-tagline">// gimana data hidup dan mati di RAM</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">STACK & HEAP</div>
+      <div class="card-title">STACK</div>
+      <div class="card-subtitle">// memori terstruktur, cepat</div>
+      <div class="card-body">
+        Stack menyimpan <strong>primitive values dan referensi</strong>. Bekerja seperti tumpukan piring — LIFO (Last In, First Out). Otomatis dibersihkan saat fungsi selesai.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p><strong>Stack</strong> kayak <strong>meja kerja lo</strong> — lo taruh buku yang lagi dipake di atas meja. Selesai, lo singkir. Meja selalu bersih otomatis setelah kerja. Terstruktur, cepat, terbatas ukurannya.</p>
+        </div>
+        <div class="code"><span class="kw">function</span> <span class="fn">a</span>() {
+  <span class="kw">let</span> x = <span class="num">1</span>; <span class="cm">// push ke stack</span>
+  <span class="fn">b</span>();
+}            <span class="cm">// x di-pop otomatis</span>
+
+<span class="kw">function</span> <span class="fn">b</span>() {
+  <span class="kw">let</span> y = <span class="num">2</span>; <span class="cm">// push ke stack</span>
+}            <span class="cm">// y di-pop otomatis</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">HEAP & GC</div>
+      <div class="card-title">HEAP & GC</div>
+      <div class="card-subtitle">// memori dinamis + garbage collector</div>
+      <div class="card-body">
+        Object dan array disimpan di <strong>Heap</strong> — memori yang lebih besar dan dinamis. Garbage Collector (GC) otomatis bersihkan data yang udah ga dipakai.
+        <div class="analogy">
+          <div class="analogy-label">// analogi</div>
+          <p><strong>Heap</strong> kayak <strong>gudang besar</strong> tempat lo simpen barang-barang berat (object). GC kayak <strong>petugas kebersihan</strong> yang secara berkala ngecek: "ada ga barang yang ga ada yang pake?" Kalau ada, dibuang.</p>
+        </div>
+        <div class="code"><span class="cm">// Object masuk heap</span>
+<span class="kw">let</span> user = { nama: <span class="str">"rixz"</span> };
+
+<span class="cm">// Hapus referensi → GC bisa beresin</span>
+user = <span class="kw">null</span>;
+
+<span class="cm">// Memory leak — referensi ga pernah hapus</span>
+<span class="kw">const</span> cache = {};
+<span class="cm">// ⚠️ terus diisi, ga pernah dibersihkan</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL STATEMENT -->
+<div class="statement" id="st3">
+  <p class="statement-text">
+    <em>BELAJAR CODING</em><br>
+    BUKAN HAFAL SYNTAX —<br>
+    TAPI NGERTI <em>CARA BERPIKIR</em>
+  </p>
+</div>
+
+<!-- MARQUEE 2 -->
+<div class="marquee-wrap">
+  <div class="marquee-inner" style="animation-direction: reverse; animation-duration: 25s;">
+    <div class="marquee-item">KEEP BUILDING</div>
+    <div class="marquee-item">KEEP BREAKING</div>
+    <div class="marquee-item">KEEP LEARNING</div>
+    <div class="marquee-item">STAY CURIOUS</div>
+    <div class="marquee-item">SHIP IT</div>
+    <div class="marquee-item">DEBUG IT</div>
+    <div class="marquee-item">FIX IT</div>
+    <div class="marquee-item">REPEAT</div>
+    <div class="marquee-item">KEEP BUILDING</div>
+    <div class="marquee-item">KEEP BREAKING</div>
+    <div class="marquee-item">KEEP LEARNING</div>
+    <div class="marquee-item">STAY CURIOUS</div>
+    <div class="marquee-item">SHIP IT</div>
+    <div class="marquee-item">DEBUG IT</div>
+    <div class="marquee-item">FIX IT</div>
+    <div class="marquee-item">REPEAT</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">FUNDAMENTAL<br>.DEV</div>
+    <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.2em;">
+      15 KONSEP · JAVASCRIPT BASED · ANALOGI DUNIA NYATA
+    </div>
+  </div>
+  <div class="footer-meta">
+    COMPILED FOR RIXZ<br>
+    ANERS RESEARCH<br>
+    FUNDAMENTAL.DEV / 2026<br>
+    <span style="color:var(--neon)">// STAY BUILDING</span>
+  </div>
+</footer>
+
+<script>
+// LOADER
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('out');
+  }, 1800);
+});
+
+// CUSTOM CURSOR
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx - 5 + 'px';
+  cursor.style.top  = my - 5 + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx - 18 + 'px';
+  ring.style.top  = ry - 18 + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, .card, .index-item').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'scale(2.5)';
+    ring.style.width = '60px';
+    ring.style.height = '60px';
+    ring.style.opacity = '0.3';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'scale(1)';
+    ring.style.width = '36px';
+    ring.style.height = '36px';
+    ring.style.opacity = '0.5';
+  });
+});
+
+// PROGRESS BAR
+const progressBar = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  progressBar.style.width = (scrolled / total * 100) + '%';
+});
+
+// INTERSECTION OBSERVER — reveal on scroll
+const reveals = document.querySelectorAll(
+  '.section-num, .section-title, .section-tagline, .card, .statement-text, .index-item'
+);
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('vis');
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+
+reveals.forEach(el => observer.observe(el));
+
+// GLITCH EFFECT on hero scroll
+const heroTitle = document.querySelector('.hero-title');
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      const opacity = Math.max(0, 1 - scrollY / 500);
+      const translateY = scrollY * 0.3;
+      if (heroTitle) {
+        heroTitle.style.transform = `translateY(${translateY}px)`;
+        heroTitle.style.opacity = opacity;
+      }
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+
+// KINETIC typing effect for hero pre
+const heroPre = document.querySelector('.hero-pre');
+if (heroPre) {
+  const text = heroPre.textContent;
+  heroPre.textContent = '';
+  let i = 0;
+  setTimeout(() => {
+    const type = setInterval(() => {
+      heroPre.textContent += text[i];
+      i++;
+      if (i >= text.length) clearInterval(type);
+    }, 45);
+  }, 1800);
+}
+
+// Smooth index item click scroll
+document.querySelectorAll('.index-item').forEach((item, idx) => {
+  item.addEventListener('click', () => {
+    const sectionIds = ['s01','s02','s03','s04','s05','s06','s07','s08','s09','s10','s11','s12','s13','s14','s15'];
+    const target = document.getElementById(sectionIds[idx]);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
